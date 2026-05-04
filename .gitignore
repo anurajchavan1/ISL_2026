@@ -1,0 +1,16 @@
+# Virtual Environments
+venv/
+env/
+
+# Datasets and Media
+raw_videos/
+extracted_data/
+*.mp4
+*.npy
+
+# Trained Models (Too large for GitHub)
+*.h5
+
+# Python Cache
+__pycache__/
+*.pyc
