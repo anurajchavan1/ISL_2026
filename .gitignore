@@ -1,16 +1,26 @@
-# Virtual Environments
+# Python
 venv/
-env/
-
-# Datasets and Media
-raw_videos/
-extracted_data/
-*.mp4
-*.npy
-
-# Trained Models (Too large for GitHub)
-*.h5
-
-# Python Cache
 __pycache__/
 *.pyc
+*.pyo
+
+# Large model files (too big for GitHub)
+*.h5
+*.keras
+*.pkl
+*.pickle
+
+# Extracted features (regeneratable)
+extracted_data/
+
+# Raw videos (too large)
+raw_videos/
+
+# Temp files
+_keras_extracted/
+*.egg-info/
+.env
+
+# OS
+.DS_Store
+Thumbs.db
