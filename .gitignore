@@ -4,11 +4,6 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Large model files (too big for GitHub)
-*.h5
-*.keras
-*.pkl
-*.pickle
 
 # Extracted features (regeneratable)
 extracted_data/

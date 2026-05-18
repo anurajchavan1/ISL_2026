@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISL Dynamic Translator</title>
+    <!-- Use Inter font to match Shadcn -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="index.css?v=2">
+</head>
+<body>
+    <header>
+        <div class="container header-inner">
+            <div class="brand">
+                <i data-lucide="hand-metal"></i>
+                ISL Translator Studio
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="badge badge-outline">
+                    <span class="status-indicator active" id="camera-status"></span>
+                    Camera Active
+                </span>
+                <button class="button button-outline button-icon" id="theme-toggle" aria-label="Toggle theme">
+                    <i data-lucide="moon" id="theme-icon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="grid-layout">
+            <!-- Left Column: Video & Real-time stats -->
+            <div class="flex-col gap-6" style="display: flex;">
+                
+                <div class="card">
+                    <div class="card-content p-0">
+                        <div class="video-container">
+                            <div class="video-overlay">
+                                <span class="badge badge-primary" id="model-mode"><i data-lucide="zap" style="width: 12px; height: 12px; margin-right: 4px;"></i>Dynamic Mode</span>
+                            </div>
+                            <!-- Mock video feed or actual mjpeg stream -->
+                            <img id="video-feed" src="/video_feed" class="video-feed" alt="Video Stream" onerror="this.style.display='none'; document.getElementById('video-placeholder').style.display='flex';" />
+                            <div id="video-placeholder" class="flex flex-col items-center justify-center w-full h-full text-muted" style="display: none;">
+                                <i data-lucide="video" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;"></i>
+                                <p>Awaiting Video Stream...</p>
+                                <p class="text-xs mt-2 text-muted">(Run backend to see camera feed)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Inference Engine</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="metric-row">
+                            <span class="text-sm font-medium">State</span>
+                            <span class="badge badge-outline" id="state-badge">NO HANDS</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="text-sm font-medium">Dynamic Output (TCN)</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-semibold" id="dyn-label">-</span>
+                                <span class="badge badge-secondary" id="dyn-conf">0.00</span>
+                            </div>
+                        </div>
+                        <div class="metric-row">
+                            <span class="text-sm font-medium">Static Output (NN)</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-semibold" id="stat-label">-</span>
+                                <span class="badge badge-secondary" id="stat-conf">0.00</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 pt-4" style="border-top: 1px solid hsl(var(--border))">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs text-muted">Wrist Energy</span>
+                                <span class="text-xs font-medium" id="wrist-energy">0.0000</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="wrist-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs text-muted">Angle Energy</span>
+                                <span class="text-xs font-medium" id="angle-energy">0.0000</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="angle-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-4">
+                    <button class="button button-outline w-full" id="btn-clear">
+                        <i data-lucide="rotate-ccw" style="width: 16px; height: 16px; margin-right: 8px;"></i>
+                        Clear Buffer
+                    </button>
+                    <button class="button button-primary w-full" id="btn-force">
+                        <i data-lucide="send" style="width: 16px; height: 16px; margin-right: 8px;"></i>
+                        Force Translate
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Translation -->
+            <div class="flex-col gap-6" style="display: flex;">
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Current Words Buffer</h2>
+                        <p class="text-sm text-muted mt-2">Signs detected waiting for translation.</p>
+                    </div>
+                    <div class="card-content">
+                        <div id="word-buffer" class="flex items-center flex-wrap min-h-[60px]">
+                            <!-- Words will be injected here -->
+                            <span class="text-sm text-muted">No signs detected yet...</span>
+                        </div>
+                        
+                        <div class="mt-4 pt-4" style="border-top: 1px solid hsl(var(--border))">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs text-muted">Auto-translate timeout</span>
+                            </div>
+                            <div class="progress-bar-bg" style="background-color: hsl(var(--muted))">
+                                <div class="progress-bar-fill" id="timeout-bar" style="width: 0%; background-color: #0ea5e9;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="flex: 1;">
+                    <div class="card-header flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="message-square-text"></i>
+                            <h2 class="card-title">Groq LLM Translation</h2>
+                        </div>
+                        <span class="badge badge-success">Llama 3.3 70B</span>
+                    </div>
+                    <div class="card-content history-scroll flex-col gap-2" id="sentence-history" style="display: flex;">
+                        <!-- Sentences will be injected here -->
+                        
+                        <div class="flex-col items-center justify-center h-full text-center text-muted" id="empty-history" style="display: flex; margin-top: 2rem;">
+                            <i data-lucide="message-square-dashed" style="width: 32px; height: 32px; margin-bottom: 1rem; opacity: 0.5;"></i>
+                            <p class="text-sm">Translated sentences will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js?v=2"></script>
+</body>
+</html>
