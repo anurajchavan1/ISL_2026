@@ -89,11 +89,11 @@ def words_to_sentence(word_list):
         resp = groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
-                {"role": "system", "content": "You are an Indian Sign Language (ISL) interpreter. ISL follows Subject-Object-Verb (SOV) word order. Question signs appear at the end of the ISL sequence. Convert the given ISL sign word sequence into one natural English sentence. Output only the sentence — no explanation, nothing else."},
-                {"role": "user", "content": f"ISL signs in order: {', '.join(word_list)}"}
+                {"role": "system", "content": "You are an expert Indian Sign Language (ISL) to English interpreter. Your task is to take a sequence of isolated words (glosses) detected from a signer and transform them into a fully fluent, grammatically flawless, and meaningful English sentence. ISL grammar often omits connecting words (is, am, are, to, the) and uses different word orders (like Subject-Object-Verb). Intelligently deduce the intended meaning, rearrange the words to proper English (Subject-Verb-Object), conjugate verbs correctly, and add any missing prepositions or articles. Output ONLY the final spoken English sentence. No quotes, no conversational filler, no explanations. Example: 'what your name' -> 'What is your name?'"},
+                {"role": "user", "content": f"Translate these ISL words into an English sentence: {' '.join(word_list)}"}
             ],
-            max_tokens=120,
-            temperature=0.3,
+            max_tokens=150,
+            temperature=0.5,
         )
         return resp.choices[0].message.content.strip()
     except Exception as e:
