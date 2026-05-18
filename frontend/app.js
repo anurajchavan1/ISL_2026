@@ -181,4 +181,27 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.btnForce.addEventListener('click', () => {
         fetch('/force_translate', { method: 'POST' });
     });
+
+    const modeButtons = document.querySelectorAll('.mode-toggle');
+    modeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const mode = btn.getAttribute('data-mode');
+            fetch('/set_mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: mode })
+            });
+            // Update UI optimistically
+            modeButtons.forEach(b => {
+                b.style.background = 'transparent';
+                b.style.color = 'hsl(var(--muted-foreground))';
+                b.style.boxShadow = 'none';
+                b.classList.remove('active');
+            });
+            btn.style.background = 'hsl(var(--background))';
+            btn.style.color = 'hsl(var(--foreground))';
+            btn.style.boxShadow = '0 1px 2px rgba(0,0,0,0.1)';
+            btn.classList.add('active');
+        });
+    });
 });

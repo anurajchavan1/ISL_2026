@@ -19,6 +19,8 @@ CORS(app)
 # ==========================================
 # 1. CONFIGURATION
 # ==========================================
+from dotenv import load_dotenv
+load_dotenv()
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 DYNAMIC_MODEL_FILE = 'isl_tcn_model.h5'
 DYNAMIC_CLASSES    = 'classes.npy'
@@ -71,7 +73,8 @@ global_state = {
     "statOutput": {"label": "", "conf": 0.0},
     "words": [],
     "history": [],
-    "noHandFrames": 0
+    "noHandFrames": 0,
+    "currentMode": "Auto"
 }
 
 state_lock = threading.Lock()
@@ -278,7 +281,16 @@ def generate_frames():
 
         hands_vis = bool(hol_res.left_hand_landmarks or hol_res.right_hand_landmarks)
         we, ae    = motion_energy(sequence) if len(sequence)==30 else (0., 0.)
-        moving    = we > WRIST_THRESH and ae > ANGLE_THRESH
+        
+        with state_lock:
+            current_mode = global_state.get("currentMode", "Auto")
+            
+        if current_mode == "Dynamic":
+            moving = True
+        elif current_mode == "Static":
+            moving = False
+        else:
+            moving = we > WRIST_THRESH and ae > ANGLE_THRESH
 
         builder.tick(hands_vis)
         in_static_cooldown = (time.time() - last_static_time) < STATIC_COOLDOWN
@@ -379,6 +391,14 @@ def sse_state():
 def force_translate():
     builder.force()
     return jsonify({"status": "success"})
+
+@app.route('/set_mode', methods=['POST'])
+def set_mode():
+    mode = request.json.get("mode", "Auto")
+    if mode in ["Auto", "Dynamic", "Static"]:
+        with state_lock:
+            global_state["currentMode"] = mode
+    return jsonify({"status": "success", "mode": mode})
 
 @app.route('/clear', methods=['POST'])
 def clear():
